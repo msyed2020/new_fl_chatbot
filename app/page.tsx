@@ -1,7 +1,29 @@
 "use client";
 import { useState } from "react";
+import React from "react";
 
 // need to get api key
+
+function renderAssistantMessage(content: string) {
+  // Split by newlines
+  const lines = content.split(/\r?\n/);
+  return (
+    <>
+      {lines.map((line, idx) => {
+        if (line.trim().startsWith("**Correzioni:**")) {
+          // Remove markdown bold for display, but keep bold and red style
+          return (
+            <div key={idx} style={{ fontWeight: 'bold', color: '#dc2626', marginTop: 8 }}>
+              Correzioni:
+            </div>
+          );
+        }
+        // Render other lines as normal, preserving line breaks
+        return <div key={idx}>{line}</div>;
+      })}
+    </>
+  );
+}
 
 export default function Home() {
   const [message, setMessage] = useState('');
@@ -105,12 +127,17 @@ export default function Home() {
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4">Recent Chats</h2>
           <div className="space-y-1">
             {previousConversations.map((conversation) => (
-              <button
+              <div
                 key={conversation.id}
-                onClick={() => loadPreviousChat(conversation)}
-                className="w-full text-left px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group relative"
+                className="w-full px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group relative cursor-pointer flex items-center"
               >
-                <div className="flex flex-col pr-8">
+                <div
+                  className="flex-1 flex flex-col pr-8"
+                  onClick={() => loadPreviousChat(conversation)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') loadPreviousChat(conversation); }}
+                >
                   <span className="truncate">{conversation.title}</span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     {conversation.timestamp.toLocaleDateString()} {conversation.timestamp.toLocaleTimeString()}
@@ -125,7 +152,7 @@ export default function Home() {
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </button>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -155,7 +182,7 @@ export default function Home() {
               <div className="flex-1">
                 <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl rounded-tl-none p-4 shadow-sm max-w-[85%] border border-gray-100 dark:border-gray-800">
                   <p className="text-gray-800 dark:text-gray-200">
-                    {msg.content}
+                    {msg.role === 'assistant' ? renderAssistantMessage(msg.content) : msg.content}
                   </p>
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block ml-2">Just now</span>
