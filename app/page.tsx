@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+// need to get api key
+
 export default function Home() {
   return (
     <div className="flex h-screen bg-[#F7F7F8] dark:bg-[#1A1A1A]">
