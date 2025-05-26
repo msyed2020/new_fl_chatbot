@@ -4,6 +4,50 @@ import { useState } from "react";
 // need to get api key
 
 export default function Home() {
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([
+    { role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    // Add user message to chat
+    setMessages(prev => [...prev, { role: 'user', content: message }]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+    } finally {
+      setIsLoading(false);
+      setMessage('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#F7F7F8] dark:bg-[#1A1A1A]">
       {/* Sidebar */}
@@ -49,20 +93,23 @@ export default function Home() {
 
         {/* Chat Container */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Welcome Message */}
-          <div className="flex items-start space-x-4 animate-fade-in">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white text-sm font-medium shadow-md">
-              AI
-            </div>
-            <div className="flex-1">
-              <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl rounded-tl-none p-4 shadow-sm max-w-[85%] border border-gray-100 dark:border-gray-800">
-                <p className="text-gray-800 dark:text-gray-200">
-                  Hello! I'm your AI assistant. How can I help you today?
-                </p>
+          {messages.map((msg, index) => (
+            <div key={index} className="flex items-start space-x-4 animate-fade-in">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-medium shadow-md ${
+                msg.role === 'assistant' ? 'bg-gradient-to-br from-violet-500 to-indigo-500' : 'bg-gray-500'
+              }`}>
+                {msg.role === 'assistant' ? 'AI' : 'You'}
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block ml-2">Just now</span>
+              <div className="flex-1">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl rounded-tl-none p-4 shadow-sm max-w-[85%] border border-gray-100 dark:border-gray-800">
+                  <p className="text-gray-800 dark:text-gray-200">
+                    {msg.content}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block ml-2">Just now</span>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
         {/* Input Area */}
@@ -72,6 +119,9 @@ export default function Home() {
               <div className="flex-1 relative">
                 <input
                   type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   placeholder="Message AI Assistant..."
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-sm transition-all duration-200"
                 />
@@ -88,8 +138,14 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-              <button className="bg-gradient-to-br from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white rounded-xl px-6 py-3 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                Send
+              <button 
+                onClick={handleSendMessage}
+                disabled={isLoading || !message.trim()}
+                className={`bg-gradient-to-br from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white rounded-xl px-6 py-3 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${
+                  (isLoading || !message.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isLoading ? 'Sending...' : 'Send'}
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
