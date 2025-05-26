@@ -10,6 +10,11 @@ export default function Home() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleNewChat = () => {
+    setMessages([{ role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }]);
+    setMessage('');
+  };
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -59,7 +64,10 @@ export default function Home() {
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
         </div>
         
-        <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mb-4">
+        <button 
+          onClick={handleNewChat}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mb-4"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
           </svg>
