@@ -6,7 +6,7 @@ import { useState } from "react";
 export default function Home() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([
-    { role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }
+    { role: 'assistant', content: "Ciao! Sono il tuo assistente AI. Come posso aiutarti oggi?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [previousConversations, setPreviousConversations] = useState<Array<{
@@ -29,7 +29,7 @@ export default function Home() {
     }
     
     // Reset to new chat
-    setMessages([{ role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }]);
+    setMessages([{ role: 'assistant', content: "Ciao! Sono il tuo assistente AI. Come posso aiutarti oggi?" }]);
     setMessage('');
   };
 
