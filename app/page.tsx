@@ -9,10 +9,32 @@ export default function Home() {
     { role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [previousConversations, setPreviousConversations] = useState<Array<{
+    id: string;
+    title: string;
+    messages: Array<{ role: 'user' | 'assistant', content: string }>;
+    timestamp: Date;
+  }>>([]);
 
   const handleNewChat = () => {
+    // Save current conversation if it has more than just the welcome message
+    if (messages.length > 1) {
+      const newConversation = {
+        id: Date.now().toString(),
+        title: messages[1].content.slice(0, 30) + (messages[1].content.length > 30 ? '...' : ''),
+        messages: [...messages],
+        timestamp: new Date()
+      };
+      setPreviousConversations(prev => [newConversation, ...prev]);
+    }
+    
+    // Reset to new chat
     setMessages([{ role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?" }]);
     setMessage('');
+  };
+
+  const loadPreviousChat = (conversation: typeof previousConversations[0]) => {
+    setMessages(conversation.messages);
   };
 
   const handleSendMessage = async () => {
@@ -53,6 +75,11 @@ export default function Home() {
     }
   };
 
+  const handleDeleteConversation = (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation(); // Prevent loading the conversation when clicking delete
+    setPreviousConversations(prev => prev.filter(conv => conv.id !== conversationId));
+  };
+
   return (
     <div className="flex h-screen bg-[#F7F7F8] dark:bg-[#1A1A1A]">
       {/* Sidebar */}
@@ -77,12 +104,29 @@ export default function Home() {
         <div className="space-y-2">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4">Recent Chats</h2>
           <div className="space-y-1">
-            <button className="w-full text-left px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-              Previous Conversation 1
-            </button>
-            <button className="w-full text-left px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-              Previous Conversation 2
-            </button>
+            {previousConversations.map((conversation) => (
+              <button
+                key={conversation.id}
+                onClick={() => loadPreviousChat(conversation)}
+                className="w-full text-left px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group relative"
+              >
+                <div className="flex flex-col pr-8">
+                  <span className="truncate">{conversation.title}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {conversation.timestamp.toLocaleDateString()} {conversation.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => handleDeleteConversation(e, conversation.id)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Delete conversation"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 hover:text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </button>
+            ))}
           </div>
         </div>
       </div>
